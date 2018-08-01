@@ -1,0 +1,43 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+networks:
+  byfn:
+
+services:
+
+  zookeeper2:
+    container_name: zookeeper2
+    extends:
+      file: base/kafka-base.yaml
+      service: zookeeper
+    environment:
+      # ========================================================================
+      #     Reference: https://zookeeper.apache.org/doc/r3.4.9/zookeeperAdmin.html#sc_configuration
+      # ========================================================================
+      #
+      # myid
+      # The ID must be unique within the ensemble and should have a value
+      # ID在集合中必须是唯一的并且应该有一个值
+      # between 1 and 255.
+      # 在1和255之间。
+      - ZOO_MY_ID=3
+    networks:
+      - byfn
+
+
+  kafka2:
+    container_name: kafka2
+    extends:
+      file: base/kafka-base.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=2
+    networks:
+      - byfn
+    depends_on:
+      - zookeeper2
