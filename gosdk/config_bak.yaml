@@ -1,0 +1,46 @@
+client:
+ peers:
+  # peer0
+  - host: "192.168.240.28"
+    port: 7051
+    eventHost: "192.168.240.28"
+    eventPort: 7053
+    primary: true
+    tls:
+      # Certificate location absolute path
+      #certificate: "$GOPATH/src/github.com/hyperledger/dotechnology.cn/docker-compose/crypto-config/ordererOrganizations/dotechnology.cn/orderers/orderer.dotechnology.cn/msp/tlscacerts/tlsca.dotechnology.cn-cert.pem"
+      certificate: "D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/peerOrganizations/org1.dotechnology.cn/peers/peer0.org1.dotechnology.cn/msp/cacerts/ca.org1.dotechnology.cn-cert.pem"
+      serverHostOverride: "peer0.org1.dotechnology.cn"
+
+ tls:
+  enabled: true
+
+   # BCCSP config for the client. Used by GO SDK.
+  BCCSP:
+    security:
+     enabled: true
+     default:
+      provider: "SW"
+     hashAlgorithm: "SHA2"
+     softVerify: true
+     level: 256
+
+ tcert:
+  batch:
+    size: 200
+
+ orderer:
+  host: "192.168.240.26"
+  port: 7050
+  tls:
+    # Certificate location absolute path
+    #certificate: "$GOPATH/src/github.com/chainhero/heroes-service/fixtures/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/cacerts/example.com-cert.pem"
+    #certificate: "$GOPATH/src/github.com/hyperledger/dotechnology.cn/docker-compose/crypto-config/ordererOrganizations/dotechnology.cn/orderers/orderer.dotechnology.cn/msp/tlscacerts/tlsca.dotechnology.cn-cert.pem"
+    certificate: "D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/ordererOrganizations/dotechnology.cn/orderers/orderer.dotechnology.cn/msp/cacerts/ca.dotechnology.cn-cert.pem"
+    serverHostOverride: "orderer.dotechnology.cn"
+
+ logging:
+  level: info
+
+ cryptoconfig:
+  path: "D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config"

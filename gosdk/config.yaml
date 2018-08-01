@@ -1,0 +1,435 @@
+#
+# Copyright SecureKey Technologies Inc. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+#
+# The network connection profile provides client applications the information about the target
+# blockchain network that are necessary for the applications to interact with it. These are all
+# knowledge that must be acquired from out-of-band sources. This file provides such a source.
+#
+
+
+#
+# Schema version of the content. Used by the SDK to apply the corresponding parsing rules.
+#
+version: 1.0.0
+
+#
+# The client section used by GO SDK.
+#
+client:
+
+  # Which organization does this application instance belong to? The value must be the name of an org
+  # defined under "organizations"
+  organization: org2
+
+  logging:
+    level: info
+
+  # Global configuration for peer, event service and orderer timeouts
+  # if this this section is omitted, then default values will be used (same values as below)
+#  peer:
+#    timeout:
+#      connection: 10s
+#      response: 180s
+#      discovery:
+#        # Expiry period for discovery service greylist filter
+#        # The channel client will greylist peers that are found to be offline
+#        # to prevent re-selecting them in subsequent retries.
+#        # This interval will define how long a peer is greylisted
+#        greylistExpiry: 10s
+#  eventService:
+#    # Event service type (optional). If not specified then the type is automatically
+#    # determined from channel capabilities.
+#    type: (deliver|eventhub)
+    # the below timeouts are commented out to use the default values that are found in
+    # "pkg/fab/endpointconfig.go"
+    # the client is free to override the default values by uncommenting and resetting
+    # the values as they see fit in their config file
+#    timeout:
+#      connection: 15s
+#      registrationResponse: 15s
+#  orderer:
+#    timeout:
+#      connection: 15s
+#      response: 15s
+#  global:
+#    timeout:
+#      query: 180s
+#      execute: 180s
+#      resmgmt: 180s
+#    cache:
+#      connectionIdle: 30s
+#      eventServiceIdle: 2m
+#      channelConfig: 30m
+#      channelMembership: 30s
+#      discovery: 10s
+#      selection: 10m
+
+  # Root of the MSP directories with keys and certs.
+  cryptoconfig:
+    path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/
+
+  # Some SDKs support pluggable KV stores, the properties under "credentialStore"
+  # are implementation specific
+  credentialStore:
+    # [Optional]. Used by user store. Not needed if all credentials are embedded in configuration
+    # and enrollments are performed elswhere.
+    path: "/tmp/state-store"
+
+    # [Optional]. Specific to the CryptoSuite implementation used by GO SDK. Software-based implementations
+    # requiring a key store. PKCS#11 based implementations does not.
+    cryptoStore:
+      # Specific to the underlying KeyValueStore that backs the crypto key store.
+      path: /tmp/msp
+
+   # BCCSP config for the client. Used by GO SDK.
+  BCCSP:
+    security:
+     enabled: true
+     default:
+      provider: "SW"
+     hashAlgorithm: "SHA2"
+     softVerify: true
+     level: 256
+
+  #tlsCerts:
+    # [Optional]. Use system certificate pool when connecting to peers, orderers (for negotiating TLS) Default: false
+  #  systemCertPool: true
+
+    # [Optional]. Client key and cert for TLS handshake with peers and orderers
+  #  client:
+  #    key:
+  #      path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/peerOrganizations/tls.dotechnology.cn/users/User1@tls.dotechnology.cn/tls/client.key
+  #    cert:
+  #      path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/peerOrganizations/tls.dotechnology.cn/users/User1@tls.dotechnology.cn/tls/client.crt
+
+#
+# [Optional]. But most apps would have this section so that channel objects can be constructed
+# based on the content below. If an app is creating channels, then it likely will not need this
+# section.
+#
+channels:
+  # name of the channel
+  mychannel:
+    # Required. list of orderers designated by the application to use for transactions on this
+    # channel. This list can be a result of access control ("org1" can only access "ordererA"), or
+    # operational decisions to share loads from applications among the orderers.  The values must
+    # be "names" of orgs defined under "organizations/peers"
+    # deprecated: not recommended, to override any orderer configuration items, entity matchers should be used.
+#    orderers:
+#      - orderer.example.com
+
+    # Required. list of peers from participating orgs
+    peers:
+      peer0.org2.dotechnology.cn:
+        # [Optional]. will this peer be sent transaction proposals for endorsement? The peer must
+        # have the chaincode installed. The app can also use this property to decide which peers
+        # to send the chaincode install request. Default: true
+        endorsingPeer: true
+
+        # [Optional]. will this peer be sent query proposals? The peer must have the chaincode
+        # installed. The app can also use this property to decide which peers to send the
+        # chaincode install request. Default: true
+        chaincodeQuery: true
+
+        # [Optional]. will this peer be sent query proposals that do not require chaincodes, like
+        # queryBlock(), queryTransaction(), etc. Default: true
+        ledgerQuery: true
+
+        # [Optional]. will this peer be the target of the SDK's listener registration? All peers can
+        # produce events but the app typically only needs to connect to one to listen to events.
+        # Default: true
+        eventSource: true
+
+      peer0.org1.dotechnology.cn:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+    # [Optional]. The application can use these options to perform channel operations like retrieving channel
+    # config etc.
+    policies:
+      #[Optional] options for retrieving channel configuration blocks
+      queryChannelConfig:
+        #[Optional] min number of success responses (from targets/peers)
+        minResponses: 1
+        #[Optional] channel config will be retrieved for these number of random targets
+        maxTargets: 1
+        #[Optional] retry options for query config block
+        retryOpts:
+          #[Optional] number of retry attempts
+          attempts: 5
+          #[Optional] the back off interval for the first retry attempt
+          initialBackoff: 500ms
+          #[Optional] the maximum back off interval for any retry attempt
+          maxBackoff: 5s
+          #[Optional] he factor by which the initial back off period is exponentially incremented
+          backoffFactor: 2.0
+
+#
+# list of participating organizations in this network
+#
+organizations:
+  org1:
+    mspid: Org1MSP
+
+    # This org's MSP store (absolute path or relative to client.cryptoconfig)
+    cryptoPath:  peerOrganizations/org1.dotechnology.cn/users/{username}@org1.dotechnology.cn/msp
+
+    peers:
+      - peer0.org1.dotechnology.cn
+    users:
+      Admin:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICNTCCAdygAwIBAgIQIKS966Quc5b42y/7Wl04cTAKBggqhkjOPQQDAjB7MQsw
+            CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+            YW5jaXNjbzEdMBsGA1UEChMUb3JnMS5kb3RlY2hub2xvZ3kuY24xIDAeBgNVBAMT
+            F2NhLm9yZzEuZG90ZWNobm9sb2d5LmNuMB4XDTE4MDgwMTAxMjM0NloXDTI4MDcy
+            OTAxMjM0NlowcDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAU
+            BgNVBAcTDVNhbiBGcmFuY2lzY28xDzANBgNVBAsTBmNsaWVudDEjMCEGA1UEAwwa
+            QWRtaW5Ab3JnMS5kb3RlY2hub2xvZ3kuY24wWTATBgcqhkjOPQIBBggqhkjOPQMB
+            BwNCAASUaZjYL2Tah5O2/ItFA/xguR0L2v1/oxGU5JIPmCU/8S3gScBUFaJ0Utxl
+            qTMqpH4bkHsd7jXOsWUVzQ9+HtJeo00wSzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0T
+            AQH/BAIwADArBgNVHSMEJDAigCD9GoyNv3a0wdCxAvkKIUlw6kRHNp1TOaSuTFh4
+            3nD6fzAKBggqhkjOPQQDAgNHADBEAiBTFJw2QGQW1YLZNo9aLIVRrlgTKuAlVCre
+            Mj6FjTpEcgIgNV7T/OIfk10ItESi2R5Tvyv0kiYiFF1WD0/rE8W+Kq8=
+            -----END CERTIFICATE-----
+      User1:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICNjCCAdygAwIBAgIQCAe53YMTbBaRxHprcwNFRDAKBggqhkjOPQQDAjB7MQsw
+            CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+            YW5jaXNjbzEdMBsGA1UEChMUb3JnMS5kb3RlY2hub2xvZ3kuY24xIDAeBgNVBAMT
+            F2NhLm9yZzEuZG90ZWNobm9sb2d5LmNuMB4XDTE4MDgwMTAxMjM0NloXDTI4MDcy
+            OTAxMjM0NlowcDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAU
+            BgNVBAcTDVNhbiBGcmFuY2lzY28xDzANBgNVBAsTBmNsaWVudDEjMCEGA1UEAwwa
+            VXNlcjFAb3JnMS5kb3RlY2hub2xvZ3kuY24wWTATBgcqhkjOPQIBBggqhkjOPQMB
+            BwNCAARJ13kfY7ZoqS43v7JSsuCzPj0dShrkYuP6nEXreAEGRsCHkzCbnN/zrKQX
+            9bn/hvb9EigdxWJ2GMr/0BFbzv0Xo00wSzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0T
+            AQH/BAIwADArBgNVHSMEJDAigCD9GoyNv3a0wdCxAvkKIUlw6kRHNp1TOaSuTFh4
+            3nD6fzAKBggqhkjOPQQDAgNIADBFAiEAsYsPigw8Yez8lBDVbkuNR62Qb4bgQN20
+            jaa9DMwwLx4CIEN+MpVYfUkmmGANB5LYj+08u1gHt9gvAvrzt0NUpl29
+            -----END CERTIFICATE-----
+
+    # [Optional]. Certificate Authorities issue certificates for identification purposes in a Fabric based
+    # network. Typically certificates provisioning is done in a separate process outside of the
+    # runtime network. Fabric-CA is a special certificate authority that provides a REST APIs for
+    # dynamic certificate management (enroll, revoke, re-enroll). The following section is only for
+    # Fabric-CA servers.
+    certificateAuthorities:
+      - ca.org1.dotechnology.cn
+
+  # the profile will contain public information about organizations other than the one it belongs to.
+  # These are necessary information to make transaction lifecycles work, including MSP IDs and
+  # peers with a public URL to send transaction proposals. The file will not contain private
+  # information reserved for members of the organization, such as admin key and certificate,
+  # fabric-ca registrar enroll ID and secret, etc.
+  org2:
+    mspid: Org2MSP
+
+    # This org's MSP store (absolute path or relative to client.cryptoconfig)
+    cryptoPath:  peerOrganizations/org2.dotechnology.cn/users/{username}@org2.dotechnology.cn/msp
+
+    peers:
+      - peer0.org2.dotechnology.cn
+    users:
+      Admin:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICNjCCAdygAwIBAgIQYZTvLDmUjAEo7iwTiMbUfzAKBggqhkjOPQQDAjB7MQsw
+            CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+            YW5jaXNjbzEdMBsGA1UEChMUb3JnMi5kb3RlY2hub2xvZ3kuY24xIDAeBgNVBAMT
+            F2NhLm9yZzIuZG90ZWNobm9sb2d5LmNuMB4XDTE4MDgwMTAxMjM0NloXDTI4MDcy
+            OTAxMjM0NlowcDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAU
+            BgNVBAcTDVNhbiBGcmFuY2lzY28xDzANBgNVBAsTBmNsaWVudDEjMCEGA1UEAwwa
+            QWRtaW5Ab3JnMi5kb3RlY2hub2xvZ3kuY24wWTATBgcqhkjOPQIBBggqhkjOPQMB
+            BwNCAATeOsTHGx01yahpG467ybDiVKG9sxo/AhcHXbC+rOegBWb7h2nfpwixibGH
+            ANJGDfktB7hx72r2MZpHomKEulCCo00wSzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0T
+            AQH/BAIwADArBgNVHSMEJDAigCAnFD27Z5W7QMYb1Zhn1SiYv/3foHJ1L5ur4xY2
+            QVWfXTAKBggqhkjOPQQDAgNIADBFAiEArxHo+bCf3WeBbFifeCWmnsfq6iE8j7pu
+            m5YF4dNYwiMCIBXs3v4n8IiSNhhJl5jQaIAliAsyJq/Fnh5aiw9CYpHT
+            -----END CERTIFICATE-----
+      User1:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICNTCCAdygAwIBAgIQQw8d+JuGMUC8de2qncHHWzAKBggqhkjOPQQDAjB7MQsw
+            CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+            YW5jaXNjbzEdMBsGA1UEChMUb3JnMi5kb3RlY2hub2xvZ3kuY24xIDAeBgNVBAMT
+            F2NhLm9yZzIuZG90ZWNobm9sb2d5LmNuMB4XDTE4MDgwMTAxMjM0NloXDTI4MDcy
+            OTAxMjM0NlowcDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAU
+            BgNVBAcTDVNhbiBGcmFuY2lzY28xDzANBgNVBAsTBmNsaWVudDEjMCEGA1UEAwwa
+            VXNlcjFAb3JnMi5kb3RlY2hub2xvZ3kuY24wWTATBgcqhkjOPQIBBggqhkjOPQMB
+            BwNCAAQVIIuObZiv9UvA5O5sx2OsuKlG2A4j4dKTLLTq/7mkVmEHv2VgYzKFxk/a
+            yHNC+GnDx807/Bpivw0O4TUvivADo00wSzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0T
+            AQH/BAIwADArBgNVHSMEJDAigCAnFD27Z5W7QMYb1Zhn1SiYv/3foHJ1L5ur4xY2
+            QVWfXTAKBggqhkjOPQQDAgNHADBEAiBh3yO0z6gTDm0n+csMR88DiHiWu3AoEzMj
+            /vu8xs6SgAIgLB8x6w9UUd4S7Mpve207UuoeTup8xOhIbWoZNHuuE1A=
+            -----END CERTIFICATE-----
+    certificateAuthorities:
+      - ca.org2.dotechnology.cn
+
+  # Orderer Org name
+  ordererorg:
+      # Membership Service Provider ID for this organization
+      mspID: OrdererMSP
+
+      # Needed to load users crypto keys and certs for this org (absolute path or relative to global crypto path, DEV mode)
+      cryptoPath: ordererOrganizations/dotechnology.cn/users/{username}@dotechnology.cn/msp
+
+
+#
+# List of orderers to send transaction and channel create/update requests to. For the time
+# being only one orderer is needed. If more than one is defined, which one get used by the
+# SDK is implementation specific. Consult each SDK's documentation for its handling of orderers.
+#
+orderers:
+  orderer.dotechnology.cn:
+    url: orderer.dotechnology.cn:7050
+
+    # these are standard properties defined by the gRPC library
+    # they will be passed in as-is to gRPC client constructor
+    grpcOptions:
+      ssl-target-name-override: orderer.dotechnology.cn
+      # These parameters should be set in coordination with the keepalive policy on the server,
+      # as incompatible settings can result in closing of connection.
+      # When duration of the 'keep-alive-time' is set to 0 or less the keep alive client parameters are disabled
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
+      allow-insecure: false
+
+    tlsCACerts:
+      # Certificate location absolute path
+      path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/ordererOrganizations/dotechnology.cn/tlsca/tlsca.dotechnology.cn-cert.pem
+
+#
+# List of peers to send various requests to, including endorsement, query
+# and event listener registration.
+#
+peers:
+  peer0.org1.dotechnology.cn:
+    # this URL is used to send endorsement and query requests
+    url: peer0.org1.dotechnology.cn:7051
+    # eventUrl is only needed when using eventhub (default is delivery service)
+    eventUrl: peer0.org1.dotechnology.cn:7053
+
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.dotechnology.cn
+      # These parameters should be set in coordination with the keepalive policy on the server,
+      # as incompatible settings can result in closing of connection.
+      # When duration of the 'keep-alive-time' is set to 0 or less the keep alive client parameters are disabled
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
+      allow-insecure: false
+
+    tlsCACerts:
+      # Certificate location absolute path
+      path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/peerOrganizations/org1.dotechnology.cn/tlsca/tlsca.org1.dotechnology.cn-cert.pem
+
+  peer0.org2.dotechnology.cn:
+    url: peer0.org2.dotechnology.cn:7051
+    # eventUrl is only needed when using eventhub (default is delivery service)
+    eventUrl: peer0.org2.dotechnology.cn:7053
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.dotechnology.cn
+      # These parameters should be set in coordination with the keepalive policy on the server,
+      # as incompatible settings can result in closing of connection.
+      # When duration of the 'keep-alive-time' is set to 0 or less the keep alive client parameters are disabled
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
+      allow-insecure: false
+
+    tlsCACerts:
+      path: D:/Go-MyPath/src/github.com/michain/fabric/gosdk/configs/crypto-config/peerOrganizations/org2.dotechnology.cn/tlsca/tlsca.org2.dotechnology.cn-cert.pem
+
+
+# EntityMatchers enable substitution of network hostnames with static configurations
+ # so that properties can be mapped. Regex can be used for this purpose
+# UrlSubstitutionExp can be empty which means the same network hostname will be used
+# UrlSubstitutionExp can be given same as mapped peer url, so that mapped peer url can be used
+# UrlSubstitutionExp can have golang regex matchers like $1.local.example.$2:$3 for pattern
+ # like peer0.org1.example.com:1234 which converts peer0.org1.example.com to peer0.org1.local.example.com:1234
+# EventUrlSubstitutionExp and sslTargetOverrideUrlSubstitutionExp follow in the same lines as
+ # SubstitutionExp for the fields eventUrl and gprcOptions.ssl-target-name-override respectively
+# In any case mappedHost's config will be used, so mapped host cannot be empty, if entityMatchers are used
+#entityMatchers:
+#entityMatchers:
+#  peer:
+#    - pattern: (\w+).org1.example.com:(\d+)
+#      urlSubstitutionExp: $1.org1.example.com:$2
+#      sslTargetOverrideUrlSubstitutionExp: $1.org1.example.com
+#      mappedHost: peer0.org1.example.com
+#
+#    - pattern: (\w+).org2.example.com:(\d+)
+#      urlSubstitutionExp: $1.org2.example.com:$2
+#      sslTargetOverrideUrlSubstitutionExp: $1.org2.example.com
+#      mappedHost: peer0.org2.example.com
+
+#    - pattern: (\w+).org1.example.(\w+)
+#      urlSubstitutionExp: peer0.org1.example.com:7051
+#      eventUrlSubstitutionExp: peer0.org1.example.com:7053
+#      sslTargetOverrideUrlSubstitutionExp: peer0.org1.example.com
+#      mappedHost: peer0.org1.example.com
+#
+#    - pattern: (\w+).org2.example.(\w+)
+#      urlSubstitutionExp: peer0.org2.example.com:8051
+#      eventUrlSubstitutionExp: peer0.org2.example.com:8053
+#      sslTargetOverrideUrlSubstitutionExp: peer0.org2.example.com
+#      mappedHost: peer0.org2.example.com
+#
+#    - pattern: (\w+).example1.(\w+):(\d+)
+#      urlSubstitutionExp: $1.org1.example.$2:$3
+#      eventUrlSubstitutionExp: $1.org1.example.$2:7053
+#      sslTargetOverrideUrlSubstitutionExp: $1.org1.example.$2
+#      mappedHost: peer0.org1.example.com
+#
+#    - pattern: (\w+).org1.example.(\w+):(\d+)
+#      urlSubstitutionExp: peer0.org1.example.com:7051
+#      eventUrlSubstitutionExp: peer0.org1.example.com:7053
+#      sslTargetOverrideUrlSubstitutionExp: peer0.org1.example.com
+#      mappedHost: peer0.org1.example.com
+#
+#  orderer:
+#    - pattern: (\w+).example.(\w+)
+#      urlSubstitutionExp: orderer.example.com:7050
+#      sslTargetOverrideUrlSubstitutionExp: orderer.example.com
+#      mappedHost: orderer.example.com
+#
+#    - pattern: (\w+).example2.(\w+)
+#      urlSubstitutionExp: localhost:7050
+#      sslTargetOverrideUrlSubstitutionExp: localhost
+#      mappedHost: orderer.example.com
+#
+#    - pattern: (\w+).example3.(\w+)
+#      urlSubstitutionExp:
+#      sslTargetOverrideUrlSubstitutionExp:
+#      mappedHost: orderer.example.com
+#
+#    - pattern: (\w+).example4.(\w+):(\d+)
+#      urlSubstitutionExp: $1.example.$2:$3
+#      sslTargetOverrideUrlSubstitutionExp: $1.example.$2
+#      mappedHost: orderer.example.com
+#
+#  certificateAuthority:
+#    - pattern: (\w+).org1.example.(\w+)
+#      urlSubstitutionExp:
+#      mappedHost: ca.org1.example.com
+#
+#    - pattern: (\w+).org2.example.(\w+)
+#      urlSubstitutionExp:
+#      mappedHost: ca.org2.example.com
