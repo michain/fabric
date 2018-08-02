@@ -1,4 +1,4 @@
-package houseregistry
+package main
 
 import (
 	"testing"
